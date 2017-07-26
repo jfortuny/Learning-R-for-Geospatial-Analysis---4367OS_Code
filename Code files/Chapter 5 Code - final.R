@@ -6,6 +6,7 @@ addresses = c(
 library(ggmap)
 airports = geocode(addresses)
 airports
+class(airports)
 
 airports$name = c("Albuquerque International",
 	"Double Eagle II",
@@ -26,7 +27,7 @@ library(rgdal)
 writeOGR(airports, "./Data files", "airportsJF", "ESRI Shapefile")
 
 # read the shapefile from disk
-airportsJF = readOGR("./Data files",
+airports = readOGR("./Data files",
 	"airportsJF",
 	stringsAsFactors = FALSE)
 
@@ -60,6 +61,7 @@ dimensions(airports)
 nrow(county)
 ncol(county)
 dim(county)
+head(county@data)
 
 county$NAME_2[1:10]
 
@@ -90,9 +92,9 @@ county = county[county$TYPE_2 != "Water body", ]
 ################
 # Figure 05_01 #
 ################
-png("C:\\Data\\4367OS_05_01.png",width=5.5,height=4.5,units="in",res=300,pointsize=5)
+#png("C:\\Data\\4367OS_05_01.png",width=5.5,height=4.5,units="in",res=300,pointsize=5)
 plot(county)
-dev.off()
+#dev.off()
 
 newProj = CRS("+proj=laea +lat_0=45 +lon_0=-100
 	+x_0=0 +y_0=0 +a=6370997 +b=6370997 +units=m +no_defs")
@@ -101,23 +103,23 @@ county = spTransform(county, newProj)
 ################
 # Figure 05_02 #
 ################
-png("C:\\Data\\4367OS_05_02.png",width=5.5,height=4.5,units="in",res=300,pointsize=5)
+#png("C:\\Data\\4367OS_05_02.png",width=5.5,height=4.5,units="in",res=300,pointsize=5)
 plot(county)
-dev.off()
+#dev.off()
 
 library(raster)
-l_03 = brick("C:\\Data\\landsat_11_09_2003.tif")
+l_03 = brick("./Data files/landsat_11_09_2003.tif")
 
 track = spTransform(track, CRS(proj4string(l_03)))
 
 ################
 # Figure 05_03 #
 ################
-png("C:\\Data\\4367OS_05_03.png",width=3.95,height=5.5,units="in",res=300)
+#png("C:\\Data\\4367OS_05_03.png",width=3.95,height=5.5,units="in",res=300)
 plotRGB(l_03, r = 3, g = 2, b = 1, stretch = "lin",
 	ext = extent(track) + 10000)
 plot(track, add = TRUE, col = "yellow")
-dev.off()
+#dev.off()
 
 # Working with the geometrical properties of vector layers
 coordinates(airports)
@@ -130,6 +132,8 @@ county$area = gArea(county, byid = TRUE) / 1000^2
 head(county@data)
 
 county_nv_ut = county[county$NAME_1 %in% c("Nevada", "Utah"), ]
+head(county_nv_ut@data)
+dim(county_nv_ut)
 
 states = gUnaryUnion(county_nv_ut, id = county_nv_ut$NAME_1)
 
@@ -138,12 +142,16 @@ row.names(states)
 ################
 # Figure 05_04 #
 ################
-png("C:\\Data\\4367OS_05_04.png",width=5.5,height=5.5,units="in",res=300,pointsize=5)
+#png("C:\\Data\\4367OS_05_04.png",width=5.5,height=5.5,units="in",res=300,pointsize=5)
 plot(county_nv_ut, border = "lightgrey", lty = "dotted")
 plot(states, add = TRUE)
 county_ctr = gCentroid(county_nv_ut, byid = TRUE)
-text(county_ctr, county_nv_ut$NAME_2, cex = 1.5)
-dev.off()
+class(county_ctr@coords)
+county_ctr@coords[,1]
+
+#text(county_ctr, county_nv_ut$NAME_2, cex = 1.5)
+text(county_ctr@coords[,1], county_ctr@coords[,2], county_nv_ut$NAME_2, cex = 0.8)
+#dev.off()
 
 airports = spTransform(airports, CRS(proj4string(county)))
 
@@ -152,10 +160,10 @@ nm = county[county$NAME_1 == "New Mexico", ]
 ################
 # Figure 05_05 #
 ################
-png("C:\\Data\\4367OS_05_05.png",width=5.5,height=5.5,units="in",res=300)
+#png("C:\\Data\\4367OS_05_05.png",width=5.5,height=5.5,units="in",res=300)
 plot(nm)
 plot(airports, col = "red", pch = 16, add = TRUE)
-dev.off()
+#dev.off()
 
 over(airports, nm)
 
@@ -164,22 +172,23 @@ cbind(airports@data, over(airports, nm))
 ################
 # Figure 05_06 #
 ################
-png("C:\\Data\\4367OS_05_06.png",width=5.5,height=5.5,units="in",res=300)
+#png("C:\\Data\\4367OS_05_06.png",width=5.5,height=5.5,units="in",res=300)
 plot(nm[airports, ])
 plot(airports, add = TRUE, col = "red", pch = 16, cex = 1.5)
 text(airports, airports$name, pos = 1)
-dev.off()
+#dev.off()
 
-boundary = readOGR("C:\\Data", "CTYUA_DEC_2013_EW_BFE")
+boundary = readOGR("./Data files", "CTYUA_DEC_2013_EW_BFE")
 
 proj4string(boundary)
 
-buildings = readOGR("C:\\Data", "london_buildings")
-natural = readOGR("C:\\Data", "london_natural")
+buildings = readOGR("./Data files", "london_buildings")
+natural = readOGR("./Data files", "london_natural")
 
 proj4string(buildings)
 proj4string(natural)
 
+# Re-project into the CRS of boundary
 buildings = spTransform(buildings, CRS(proj4string(boundary)))
 natural = spTransform(natural, CRS(proj4string(boundary)))
 
@@ -200,14 +209,15 @@ river = gUnaryUnion(river)
 ################
 # Figure 05_07 #
 ################
-png("C:\\Data\\4367OS_05_07.png",width=5.5,height=5.5,units="in",res=300,pointsize=5)
+#png("C:\\Data\\4367OS_05_07.png",width=5.5,height=5.5,units="in",res=300,pointsize=5)
 plot(buildings, col = "sandybrown")
 plot(river, col = "lightblue", add = TRUE)
 plot(boundary, border = "dimgrey", add = TRUE)
-dev.off()
+#dev.off()
 
-haifa_buildings = readOGR("C:\\Data", "haifa_buildings")
-haifa_natural = readOGR("C:\\Data", "haifa_natural")
+# Creating new geometries/layers from existing layers
+haifa_buildings = readOGR("./Data files", "haifa_buildings")
+haifa_natural = readOGR("./Data files", "haifa_natural")
 
 israel_adm = getData("GADM", country = "ISR", level = 1)
 
@@ -222,11 +232,11 @@ haifa_natural =
 ################
 # Figure 05_09 #
 ################
-png("C:\\Data\\4367OS_05_09.png",width=5.5,height=5.5,units="in",res=300,pointsize=5)
+#png("C:\\Data\\4367OS_05_09.png",width=5.5,height=5.5,units="in",res=300,pointsize=5)
 plot(haifa_natural, col = "lightgreen")
 plot(haifa_buildings, add = TRUE)
 plot(haifa_adm, add = TRUE)
-dev.off()
+#dev.off()
 
 buildings_ch = gConvexHull(haifa_buildings)
 
@@ -243,13 +253,14 @@ haifa_natural = gDifference(haifa_natural, buildings_50m)
 ################
 # Figure 05_10 #
 ################
-png("C:\\Data\\4367OS_05_10.png",width=5.5,height=5.5,units="in",res=300,pointsize=5)
+#png("C:\\Data\\4367OS_05_10.png",width=5.5,height=5.5,units="in",res=300,pointsize=5)
 plot(buildings_ch, col = "lightgrey", border = "lightgrey")
 plot(haifa_adm, add = TRUE)
 plot(haifa_natural, col = "lightgreen", add = TRUE)
 plot(haifa_buildings, add = TRUE)
-dev.off()
+#dev.off()
 
+# Calculating distances between geometries
 dist = gDistance(buildings, river, byid = TRUE)
 
 class(dist)
@@ -260,7 +271,8 @@ buildings$dist_river = dist[1, ]
 
 head(buildings@data)
 
-dat = read.csv("C:\\Data\\CO-EST2012-Alldata.csv")
+# Joining geometries with tabular data
+dat = read.csv("./Data files/CO-EST2012-Alldata.csv")
 
 colnames(dat)[1:15]
 
