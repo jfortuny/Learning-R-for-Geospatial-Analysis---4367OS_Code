@@ -1,9 +1,9 @@
 library(raster)
-dem_spain = raster("C:\\Data\\spain_elev.tif")
+dem_spain = raster("./Data files/spain_elev.tif")
 dem_spain = aggregate(dem_spain, 4)
-spain_stations = read.csv("C:\\Data\\spain_stations.csv", 
+spain_stations = read.csv("./Data files/spain_stations.csv",
 	stringsAsFactors = FALSE)
-spain_annual = read.csv("C:\\Data\\spain_annual.csv", 
+spain_annual = read.csv("./Data files/spain_annual.csv",
 	stringsAsFactors = FALSE)
 
 create_pnt = function(stations,annual,year,variable,new_proj) {
@@ -16,7 +16,7 @@ library(plyr)
 	stations = stations[coordinates(stations)[, 1] > -10, ]
 	# (4) Subsetting climatic data
 	annual = annual[
-		annual$year == year & 
+		annual$year == year &
 		annual$variable == variable, ]
 	# (5) Joining meteorological data with stations layer
 	stations@data = join(stations@data, annual, by = "station")
@@ -52,7 +52,7 @@ grid = rasterize(grid, dem_spain, "nn")
 ################
 # Figure 08_01 #
 ################
-png("C:\\Data\\4367OS_08_01.png",width=5.5,height=5.5,units="in",res=300)
+#png("./Data files/4367OS_08_01.png",width=5.5,height=5.5,units="in",res=300)
 plot(grid)
 plot(dat, add = TRUE)
 dev.off()
@@ -69,7 +69,7 @@ z = mask(z, dem_spain)
 ################
 # Figure 08_04 #
 ################
-png("C:\\Data\\4367OS_08_04.png",width=5.5,height=5.5,units="in",res=300)
+#png("./Data files/4367OS_08_04.png",width=5.5,height=5.5,units="in",res=300)
 plot(z)
 plot(dat, add = TRUE)
 dev.off()
@@ -84,7 +84,7 @@ z2 = mask(z2, dem_spain)
 ################
 # Figure 08_05 #
 ################
-png("C:\\Data\\4367OS_08_05.png",width=5.5,height=2,units="in",res=300,pointsize=10)
+#png("./Data files/4367OS_08_05.png",width=5.5,height=2,units="in",res=300,pointsize=10)
 par(mfrow = c(1,3), mai = rep(0.4, 4))
 plot(z1, main = c("beta = 0.3"))
 plot(dat, add = TRUE, pch = 20, cex = 0.5)
@@ -108,7 +108,7 @@ ev = variogram(g)
 ################
 # Figure 08_07 #
 ################
-png("C:\\Data\\4367OS_08_07.png",width=5.5,height=5.5,units="in",res=300)
+#png("./Data files/4367OS_08_07.png",width=5.5,height=5.5,units="in",res=300)
 plot(ev)
 dev.off()
 
@@ -118,7 +118,7 @@ v = autofitVariogram(formula = value ~ 1, input_data = dat)
 ################
 # Figure 08_08 #
 ################
-png("C:\\Data\\4367OS_08_08.png",width=5.5,height=5.5,units="in",res=300)
+#png("./Data files/4367OS_08_08.png",width=5.5,height=5.5,units="in",res=300)
 plot(v)
 dev.off()
 
@@ -131,7 +131,7 @@ z = mask(z, dem_spain)
 ################
 # Figure 08_09 #
 ################
-png("C:\\Data\\4367OS_08_09.png",width=5.5,height=5.5,units="in",res=300)
+#png("./Data files/4367OS_08_09.png",width=5.5,height=5.5,units="in",res=300)
 plot(z)
 plot(dat, add = TRUE)
 dev.off()
@@ -142,21 +142,21 @@ rmse(cv)
 ################
 # Figure 08_10 #
 ################
-png("C:\\Data\\4367OS_08_10.png",width=5.5,height=5.5,units="in",res=300)
-plot(value ~ elevation, dat@data, 
-	xlab = "Elevation (m)", 
+#png("./Data files/4367OS_08_10.png",width=5.5,height=5.5,units="in",res=300)
+plot(value ~ elevation, dat@data,
+	xlab = "Elevation (m)",
 	ylab = "Temperature (degrees Celsius)")
 dev.off()
 
-v = autofitVariogram(formula = value ~ elevation, 
+v = autofitVariogram(formula = value ~ elevation,
 	input_data = dat)
 
-g = gstat(formula = value ~ elevation, 
-	data = dat, 
+g = gstat(formula = value ~ elevation,
+	data = dat,
 	model = v$var_model)
 g
 
-names(dem_spain) 
+names(dem_spain)
 names(dem_spain) = "elevation"
 names(dem_spain)
 
@@ -167,7 +167,7 @@ z = mask(z, dem_spain)
 ################
 # Figure 08_11 #
 ################
-png("C:\\Data\\4367OS_08_11.png",width=5.5,height=5.5,units="in",res=300)
+#png("./Data files/4367OS_08_11.png",width=5.5,height=5.5,units="in",res=300)
 plot(z)
 plot(dat, add = TRUE)
 dev.off()
@@ -194,14 +194,14 @@ for(i in row(cv_results)) {
 	# (2) Create *form* and *v_mod* objects
 	if(cv_results$method[i] == "IDW") {
 		form = value ~ 1
-		v_mod = NULL} else {  
+		v_mod = NULL} else {
 			if(cv_results$method[i] == "OK") {
 				form = value ~ 1}
 			if(cv_results$method[i] == "UK") {
 				form = value ~ elevation}
-				v_mod = 
+				v_mod =
 					autofitVariogram(
-					formula = form, 
+					formula = form,
 					input_data = dat)$var_model}
 	# (3) Create gstat object
 	g = gstat(formula = form, data = dat, model = v_mod)
@@ -231,11 +231,11 @@ for(i in 1:nrow(spainT_tab)) {
 		variable = spainT_tab$variable[i],
 		new_proj = proj4string(dem_spain))
 	# (2) Automatically fit variogram model
-	v = autofitVariogram(formula = value ~ elevation, 
+	v = autofitVariogram(formula = value ~ elevation,
 		input_data = dat)
 	# (3) Create gstat object
-	g = gstat(formula = value ~ elevation, 
-		model = v$var_model, 
+	g = gstat(formula = value ~ elevation,
+		model = v$var_model,
 		data = dat)
 	# (4) Interpolate!
 	z = interpolate(dem_spain, g, xyOnly = FALSE)
@@ -245,8 +245,8 @@ for(i in 1:nrow(spainT_tab)) {
 
 names(spainT)
 
-names(spainT) = paste(spainT_tab$variable, 
-	spainT_tab$year, 
+names(spainT) = paste(spainT_tab$variable,
+	spainT_tab$year,
 	sep = "_")
 names(spainT)
 
@@ -255,9 +255,9 @@ library(rasterVis)
 ################
 # Figure 08_12 #
 ################
-png("C:\\Data\\4367OS_08_12.png",width=6.5,height=3.5,units="in",res=300)
+#png("./Data files/4367OS_08_12.png",width=6.5,height=3.5,units="in",res=300)
 levelplot(spainT,
-	par.settings = "BuRdTheme", 
+	par.settings = "BuRdTheme",
 	layout = c(5,2))
 dev.off()
 
@@ -266,7 +266,7 @@ mmnt_layers
 mmxt_layers = which(spainT_tab$variable == "mmxt")
 mmxt_layers
 
-means = stack(mean(spainT[[mmnt_layers]]), 
+means = stack(mean(spainT[[mmnt_layers]]),
 	mean(spainT[[mmxt_layers]]))
 names(means) = c("mmnt", "mmxt")
 
@@ -281,11 +281,11 @@ range(spainT[], na.rm = TRUE)
 ################
 # Figure 08_13 #
 ################
-png("C:\\Data\\4367OS_08_13.png",width=6.5,height=3.5,units="in",res=300)
-levelplot(spainT, 
-	par.settings = "BuRdTheme", 
-	layout = c(5,2), 
-	contour = TRUE, 
+#png("./Data files/4367OS_08_13.png",width=6.5,height=3.5,units="in",res=300)
+levelplot(spainT,
+	par.settings = "BuRdTheme",
+	layout = c(5,2),
+	contour = TRUE,
 	at = c(-4:-1,1:4))
 dev.off()
 
