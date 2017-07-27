@@ -21,10 +21,11 @@ r = brick("./Data files/modis.tif")
 ###
 
 ### From Chapter 6
+library(rgdal)
 dem1 = getData("SRTM", lon=33, lat=33)
 dem2 = getData("SRTM", lon=38, lat=33)
 dem = merge(dem1, dem2)
-haifa_buildings = readOGR("C:\\Data", "haifa_buildings")
+haifa_buildings = readOGR("./Data files", "haifa_buildings")
 haifa_surrounding = extent(haifa_buildings) + 0.25
 dem = crop(dem, haifa_surrounding)
 dem = projectRaster(from = dem,
@@ -48,7 +49,7 @@ s[] = apply(r_array, 3, rowMeans, na.rm = TRUE)
 track = readOGR("./Data files/GPS_log.gpx","tracks")
 track = spTransform(track, CRS(proj4string(r)))
 library(rgeos)
-county = readOGR("C:\\Data", "USA_2_GADM_fips",
+county = readOGR("./Data files", "USA_2_GADM_fips",
 	stringsAsFactors = FALSE)
 county = county[
 	county$NAME_1 != "Alaska" &
@@ -70,9 +71,9 @@ county@data = join(county@data,
 	dat[, colnames(dat) %in% c("FIPS", "census2010pop")],
 	by = "FIPS")
 county$density = county$census2010pop / county$area
-boundary = readOGR("C:\\Data", "CTYUA_DEC_2013_EW_BFE")
-buildings = readOGR("C:\\Data", "london_buildings")
-natural = readOGR("C:\\Data", "london_natural")
+boundary = readOGR("./Data files", "CTYUA_DEC_2013_EW_BFE")
+buildings = readOGR("./Data files", "london_buildings")
+natural = readOGR("./Data files", "london_natural")
 buildings = spTransform(buildings, CRS(proj4string(boundary)))
 natural = spTransform(natural, CRS(proj4string(boundary)))
 city = boundary[boundary$CTYUA13NM == "City of London", ]
@@ -82,8 +83,8 @@ river = natural[natural$type == "riverbank", ]
 river = gUnaryUnion(river)
 dist = gDistance(buildings, river, byid = TRUE)
 buildings$dist_river = dist[1, ]
-haifa_buildings = readOGR("C:\\Data", "haifa_buildings")
-haifa_natural = readOGR("C:\\Data", "haifa_natural")
+haifa_buildings = readOGR("./Data files", "haifa_buildings")
+haifa_natural = readOGR("./Data files", "haifa_natural")
 israel_adm = getData("GADM", country = "ISR", level = 1)
 haifa_adm = israel_adm[israel_adm$NAME_1 == "Haifa", ]
 haifa_adm = spTransform(haifa_adm, CRS(proj4string(l_00)))
@@ -270,11 +271,12 @@ ggplot() +
 # Figure 09_03 #
 ################
 ggsave("./Data files/4367OS_09_03.png", width = 5.5, height = 3)
+ggsave("./Data files/4367OS_09_03.pdf", device = "pdf", useDingbats = FALSE, width = 5.5, height = 3)
 
 build = data.frame(cover = "Buildings",
-slope = buildings_mask[!is.na(buildings_mask)])
+                   slope = buildings_mask[!is.na(buildings_mask)])
 nat = data.frame(cover = "Natural",
-slope = natural_mask[!is.na(natural_mask)])
+                 slope = natural_mask[!is.na(natural_mask)])
 
 slopes = rbind(nat, build)
 head(slopes)
@@ -289,6 +291,8 @@ ggplot(slopes, aes(x = slope)) +
 	scale_y_continuous("Count") +
 	theme_bw()
 ggsave("./Data files/4367OS_09_04a.png", width = 3.5, height = 5.5)
+ggsave("./Data files/4367OS_09_04aDingbats.pdf", device = "pdf", useDingbats = FALSE, width = 3.5, height = 5.5)
+
 ggplot(slopes, aes(x = slope)) +
 	geom_histogram() +
 	facet_wrap(~ cover, ncol = 1) +
@@ -296,6 +300,7 @@ ggplot(slopes, aes(x = slope)) +
 	scale_y_continuous("Count") +
 	theme_bw()
 ggsave("./Data files/4367OS_09_04b.png", width = 3.5, height = 5.5)
+ggsave("./Data files/4367OS_09_04bDingbats.pdf", device = "pdf", useDingbats = FALSE, width = 3.5, height = 5.5)
 
 ggplot(dat, aes(x = time, y = tmax)) +
 	geom_line()
@@ -313,6 +318,7 @@ tmax1 = ggplot(dat, aes(x = time, y = tmax))
 tmax2 = geom_line()
 tmax1 + tmax2
 
+# Plotting Spatial Data
 county_f = fortify(county, region = "FIPS")
 head(county_f)
 
